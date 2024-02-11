@@ -47,11 +47,52 @@ async def login_handler(c: Client, m: Message):
     except Exception as e:
         print(e)
 
-@StreamBot.on_message((filters.private) & (filters.document | filters.video | filters.audio | filters.photo) , group=4)
+from pyrogram import Client, filters, InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.errors.exceptions import UserNotParticipant
+from pyrogram.errors import FloodWait
+from pyrogram.types import Message
+from urllib.parse import quote_plus
+import asyncio
+
+# Assuming these functions and variables are defined elsewhere in your code
+# Make sure to include the necessary imports and implementations
+
+# Example implementation for get_name, get_hash, get_media_file_size, Var.URL
+def get_name(message):
+    return message.document.file_name
+
+def get_hash(message):
+    return "hash_placeholder"
+
+def get_media_file_size(message):
+    return 1024  # Replace with actual implementation
+
+class Var:
+    BIN_CHANNEL = -1001234567890  # Replace with your channel ID
+    URL = "https://example.com/"
+
+# Example implementation for pass_db and db
+class PassDB:
+    async def get_user_pass(self, user_id):
+        return "user_password"
+
+class DB:
+    async def is_user_exist(self, user_id):
+        return True
+
+    async def add_user(self, user_id):
+        pass
+
+pass_db = PassDB()
+db = DB()
+MY_PASS = "user_password"  # Replace with your actual password
+StreamBot = Client("stream_bot")  # Replace with your bot instance
+
+@StreamBot.on_message((filters.private) & (filters.document | filters.video | filters.audio | filters.photo), group=4)
 async def private_receive_handler(c: Client, m: Message):
     if MY_PASS:
         check_pass = await pass_db.get_user_pass(m.chat.id)
-        if check_pass== None:
+        if check_pass is None:
             await m.reply_text("Login first using /login cmd \n don\'t know the pass? request it from the Developer")
             return
         if check_pass != MY_PASS:
@@ -70,10 +111,9 @@ async def private_receive_handler(c: Client, m: Message):
                 await c.send_message(
                     chat_id=m.chat.id,
                     text="You are banned!\n\n  **Cᴏɴᴛᴀᴄᴛ Support [Support](https://t.me/main_channel_bot_update) They Wɪʟʟ Hᴇʟᴘ Yᴏᴜ**",
-                    
                     disable_web_page_preview=True
                 )
-                return 
+                return
         except UserNotParticipant:
             await c.send_message(
                 chat_id=m.chat.id,
@@ -85,36 +125,38 @@ async def private_receive_handler(c: Client, m: Message):
                         ]
                     ]
                 ),
-                
             )
             return
         except Exception as e:
-            await m.reply_text(e)
+            await m.reply_text(str(e))
             await c.send_message(
                 chat_id=m.chat.id,
                 text="**Sᴏᴍᴇᴛʜɪɴɢ ᴡᴇɴᴛ Wʀᴏɴɢ. Cᴏɴᴛᴀᴄᴛ ᴍʏ Support** [Support](https://t.me/main_channel_bot_update)",
-                
-                disable_web_page_preview=True)
+                disable_web_page_preview=True
+            )
             return
     try:
         log_msg = await m.forward(chat_id=Var.BIN_CHANNEL)
         stream_link = f"{Var.URL}watch/{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
         online_link = f"{Var.URL}{str(log_msg.id)}/{quote_plus(get_name(log_msg))}?hash={get_hash(log_msg)}"
-       
-        msg_text ="""<i><u>𝗬𝗼𝘂𝗿 𝗟𝗶𝗻𝗸 𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗲𝗱 !</u></i>\n\n<b>📂 Fɪʟᴇ ɴᴀᴍᴇ :</b> <i>{}</i>\n\n<b>📦 Fɪʟᴇ ꜱɪᴢᴇ :</b> <i>{}</i>\n\n<b>📥 Dᴏᴡɴʟᴏᴀᴅ :</b> <i>{}</i>\n\n<b> 🖥WATCH  :</b> <i>{}</i>\n\n<b>🚸 Nᴏᴛᴇ : LINK WILL NOT EXPIRE UNTIL I DELETE</b>"""
 
-        await log_msg.reply_text(text=f"**RᴇQᴜᴇꜱᴛᴇᴅ ʙʏ :** [{m.from_user.first_name}](tg://user?id={m.from_user.id})\n**Uꜱᴇʀ ɪᴅ :** `{m.from_user.id}`\n**Stream ʟɪɴᴋ :** {stream_link}", disable_web_page_preview=True,  quote=True)
+        msg_text = """<i><u>𝗬𝗼𝘂𝗿 𝗟𝗶𝗻𝗸 𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗲𝗱 !</u></i>\n\n<b>📂 Fɪʟᴇ ɴᴀᴍᴇ :</b> <i>{}</i>\n\n<b>📦 Fɪʟᴇ ꜱɪᴢᴇ :</b> <i>{}</i>\n\n<b>📥 Dᴏᴡɴʟᴏᴀᴅ :</b> <i>{}</i>\n\n<b> 🖥WATCH  :</b> <i>{}</i>\n\n<b>🚸 Nᴏᴛᴇ : LINK WILL NOT EXPIRE UNTIL I DELETE</b>"""
+
+        await log_msg.reply_text(text=f"**RᴇQᴜᴇꜱᴛᴇᴅ ʙʏ :** [{m.from_user.first_name}](tg://user?id={m.from_user.id})\n**Uꜱᴇʀ ɪᴅ :** `{m.from_user.id}`\n**Stream ʟɪɴᴋ :** {stream_link}", disable_web_page_preview=True, quote=True)
         await m.reply_text(
             text=msg_text.format(get_name(log_msg), humanbytes(get_media_file_size(m)), online_link, stream_link),
             quote=True,
             disable_web_page_preview=True,
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("STREAM 🖥", url=stream_link), #Stream Link
-                                                InlineKeyboardButton('DOWNLOAD 📥', url=online_link)]]) #Download Link
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("STREAM 🖥", url=stream_link),
+                                                InlineKeyboardButton('DOWNLOAD 📥', url=online_link)]])
         )
     except FloodWait as e:
         print(f"Sleeping for {str(e.x)}s")
         await asyncio.sleep(e.x)
         await c.send_message(chat_id=Var.BIN_CHANNEL, text=f"Gᴏᴛ FʟᴏᴏᴅWᴀɪᴛ ᴏғ {str(e.x)}s from [{m.from_user.first_name}](tg://user?id={m.from_user.id})\n\n**𝚄𝚜𝚎𝚛 𝙸𝙳 :** `{str(m.from_user.id)}`", disable_web_page_preview=True)
+
+StreamBot.run()
+
 
 
 @StreamBot.on_message(filters.channel & ~filters.group & (filters.document | filters.video | filters.photo)  & ~filters.forwarded, group=-1)
